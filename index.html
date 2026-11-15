@@ -1,0 +1,453 @@
+<html lang="pt-br"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xatSpacely</title>
+    <style>
+        :root {
+            --neon-pink: #cbda00;
+            --soft-pink: #ffffff;
+            --white-pink: #ffe6f2;
+            --neon-glow: 0 0 10px #006ef
+            f, 0 0 20px #000000;
+            --bg-dark: #000000;
+            --bg-entry: #000000;
+            --glass: rgba(201, 164, 1, 0.95);
+        }
+
+        /* --- Global Anti-Seleção --- */
+        * {
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* --- Efeito de Rastro de Cauda do Mouse (Comet Trail) --- */
+        .cursor-trail {
+            position: fixed;
+            top: 0; left: 0;
+            width: 12px;  /* Tamanho inicial da ponta */
+            height: 12px;
+            background: white; /* Cor da ponta */
+            box-shadow: 0 0 10px white, 0 0 20px var(--neon-Blue), 0 0 30px var(--neon-Blue);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%); /* Centraliza no ponteiro */
+            opacity: 1;
+            transition: width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out, background 0.3s ease-out;
+        }
+
+        /* --- Custom Scrollbar Neon --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(75, 67, 0, 0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-Blue);
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--neon-Blue);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--soft-blue);
+            box-shadow: 0 0 15px var(--soft-blue);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark); color: white;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* --- Fundo Estrelado (Global) --- */
+        #stars-bg {
+            position: fixed; width: 100%; height: 100%; z-index: 1;
+            background: radial-gradient(circle at center, #2a0314, #000000);
+        }
+        .stars {
+            position: absolute; width: 100%; height: 100%;
+            background: radial-gradient(white, rgba(156, 158, 3, 0.356) 1px, transparent 2px);
+            background-size: 200px 200px; animation: moveStars 100s linear infinite;
+        }
+        .twinkle {
+            position: absolute; width: 2px; height: 2px; background: white;
+            border-radius: 50%; opacity: 0; animation: flash 2s infinite ease-in-out;
+        }
+        @keyframes flash {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1.2); box-shadow: 0 0 10px white; }
+        }
+        @keyframes moveStars { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
+
+        /* --- Efeito Gradiente Animado --- */
+        .animated-gradient {
+            background: linear-gradient(270deg, #ffffff, var(--neon-Blue), #ffffff, var(--soft-blue));
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 5s ease infinite;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #copy-toast {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--neon-pink); color: white; padding: 15px 30px;
+            border-radius: 50px; z-index: 10000; font-weight: bold; border: 2px solid white;
+            box-shadow: 0 0 25px var(--neon-pink); text-transform: uppercase;
+        }
+
+        /* --- Tela de Entrada --- */
+        #entry-page {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; 
+            background-color: var(--bg-entry);
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        .welcome-title {
+            font-size: 5rem; font-weight: bold; margin-bottom: 25px;
+            font-family: 'Brush Script MT', cursive, sans-serif;
+            text-shadow: 0 0 20px rgba(102, 92, 4, 0.4);
+            position: relative; z-index: 101;
+        }
+        
+        .btn-enter {
+            padding: 15px 60px; font-size: 1.5rem; 
+            color: white; 
+            background: linear-gradient(135deg, var(--neon-pink) 0%, white 50%, var(--neon-pink) 100%);
+            background-size: 200% auto;
+            border: 2px solid var(--white-pink); border-radius: 50px; cursor: pointer;
+            text-transform: uppercase; 
+            box-shadow: 0 0 25px var(--neon-pink), 0 0 10px white;
+            font-weight: bold; letter-spacing: 2px;
+            position: relative; z-index: 101;
+            animation: gradientMoveButton 2s linear infinite;
+            transition: transform 0.3s;
+        }
+
+        .btn-enter:active { transform: scale(0.95); }
+
+        @keyframes gradientMoveButton {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        /* --- Interface Principal --- */
+        #main-interface {
+            visibility: hidden; opacity: 0; position: relative; z-index: 10;
+            display: flex; gap: 20px; align-items: flex-start;
+            transition: opacity 1s ease;
+        }
+        #profile-card {
+            width: 360px; background: var(--glass); border: 2px solid var(--neon-pink);
+            border-radius: 20px; padding: 25px; box-shadow: var(--neon-glow);
+            text-align: center; backdrop-filter: blur(10px);
+        }
+        #side-panel {
+            width: 0; overflow: hidden; background: var(--glass);
+            border-radius: 20px; transition: 0.5s ease-in-out; opacity: 0;
+            backdrop-filter: blur(10px);
+        }
+        #side-panel.open {
+            width: 480px; border: 2px solid var(--neon-pink);
+            box-shadow: var(--neon-glow); padding: 25px; opacity: 1;
+        }
+
+        .profile-img { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--neon-pink); margin-bottom: 15px; box-shadow: var(--neon-glow); object-fit: cover; }
+        .menu-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--neon-pink); color: white; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.2s; }
+        .menu-btn:hover, .menu-btn.active { background: var(--neon-pink); box-shadow: var(--neon-glow); }
+
+        .panel-content { display: none; max-height: 55vh; overflow-y: auto; }
+        
+        #color-list { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; padding: 5px; }
+        .c-box { width: 100%; aspect-ratio: 1; border-radius: 2px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.1s; }
+        .c-box:hover { transform: scale(1.2); z-index: 5; border: 1px solid white; }
+
+        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .photo-grid img { 
+            width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; 
+            cursor: pointer; border: 2px solid transparent; transition: 0.3s; 
+        }
+        .photo-grid img:hover { 
+            border-color: var(--neon-pink); 
+            box-shadow: 0 0 15px var(--neon-pink);
+            transform: scale(1.05);
+        }
+
+        #photo-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000;
+            justify-content: center; align-items: center; cursor: pointer;
+        }
+        #photo-modal img {
+            max-width: 85%; max-height: 85%; border: 3px solid var(--neon-pink);
+            border-radius: 15px; box-shadow: var(--neon-glow);
+            cursor: default;
+        }
+
+        .player-container { margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--neon-pink); }
+        .player-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .player-btn { background: transparent; border: 1px solid var(--neon-pink); color: white; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .player-btn:hover { background: var(--neon-pink); }
+
+        #alert-box { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--neon-pink); color: white; padding: 12px 25px; border-radius: 50px; z-index: 5000; font-weight: bold; box-shadow: var(--neon-glow); border: 1px solid white; }
+    </style>
+</head>
+<body oncontextmenu="handleRightClick(event)">
+
+<div id="copy-toast">CÓDIGO </div>
+<div id="alert-box">Acesso Prohibido</div>
+
+<div id="stars-bg"><div class="stars"></div><div class="twinkle" style="left: 5.87424vw; top: 74.332vh; animation-delay: 4.6151s;"></div><div class="twinkle" style="left: 1.22672vw; top: 43.168vh; animation-delay: 3.8512s;"></div><div class="twinkle" style="left: 8.62838vw; top: 62.1127vh; animation-delay: 4.01832s;"></div><div class="twinkle" style="left: 5.29442vw; top: 1.83744vh; animation-delay: 2.23465s;"></div><div class="twinkle" style="left: 56.4891vw; top: 96.0438vh; animation-delay: 2.95139s;"></div><div class="twinkle" style="left: 92.9146vw; top: 51.173vh; animation-delay: 4.64604s;"></div><div class="twinkle" style="left: 91.007vw; top: 84.0864vh; animation-delay: 3.54486s;"></div><div class="twinkle" style="left: 12.1604vw; top: 70.2718vh; animation-delay: 4.39549s;"></div><div class="twinkle" style="left: 71.4304vw; top: 91.7936vh; animation-delay: 3.90146s;"></div><div class="twinkle" style="left: 30.3806vw; top: 5.24811vh; animation-delay: 0.289007s;"></div><div class="twinkle" style="left: 6.12758vw; top: 79.9524vh; animation-delay: 3.27378s;"></div><div class="twinkle" style="left: 50.5123vw; top: 20.1068vh; animation-delay: 0.756836s;"></div><div class="twinkle" style="left: 39.277vw; top: 5.5855vh; animation-delay: 0.831702s;"></div><div class="twinkle" style="left: 73.5099vw; top: 55.2053vh; animation-delay: 2.43427s;"></div><div class="twinkle" style="left: 68.7483vw; top: 35.5458vh; animation-delay: 3.43878s;"></div><div class="twinkle" style="left: 79.8823vw; top: 13.5702vh; animation-delay: 3.86954s;"></div><div class="twinkle" style="left: 98.3523vw; top: 18.7402vh; animation-delay: 4.72331s;"></div><div class="twinkle" style="left: 2.84362vw; top: 85.6644vh; animation-delay: 2.95938s;"></div><div class="twinkle" style="left: 36.4993vw; top: 85.9013vh; animation-delay: 1.6894s;"></div><div class="twinkle" style="left: 91.6109vw; top: 80.6006vh; animation-delay: 4.2098s;"></div><div class="twinkle" style="left: 52.6604vw; top: 42.5511vh; animation-delay: 3.42473s;"></div><div class="twinkle" style="left: 13.961vw; top: 35.8121vh; animation-delay: 4.62823s;"></div><div class="twinkle" style="left: 5.03373vw; top: 33.3162vh; animation-delay: 4.25884s;"></div><div class="twinkle" style="left: 25.8273vw; top: 79.3728vh; animation-delay: 2.36387s;"></div><div class="twinkle" style="left: 3.6641vw; top: 87.4053vh; animation-delay: 2.20656s;"></div><div class="twinkle" style="left: 52.0028vw; top: 6.76703vh; animation-delay: 0.174439s;"></div><div class="twinkle" style="left: 26.859vw; top: 90.9055vh; animation-delay: 4.16116s;"></div><div class="twinkle" style="left: 73.5028vw; top: 51.2772vh; animation-delay: 4.14211s;"></div><div class="twinkle" style="left: 2.23563vw; top: 53.9582vh; animation-delay: 3.50314s;"></div><div class="twinkle" style="left: 96.9809vw; top: 58.2335vh; animation-delay: 4.98767s;"></div><div class="twinkle" style="left: 3.06417vw; top: 54.8402vh; animation-delay: 3.42126s;"></div><div class="twinkle" style="left: 35.4111vw; top: 59.8923vh; animation-delay: 1.14487s;"></div><div class="twinkle" style="left: 14.9035vw; top: 8.56227vh; animation-delay: 1.61965s;"></div><div class="twinkle" style="left: 76.6173vw; top: 34.65vh; animation-delay: 3.26092s;"></div><div class="twinkle" style="left: 85.003vw; top: 89.9544vh; animation-delay: 0.845085s;"></div><div class="twinkle" style="left: 2.3279vw; top: 15.7371vh; animation-delay: 1.83838s;"></div><div class="twinkle" style="left: 69.1208vw; top: 3.51727vh; animation-delay: 3.66119s;"></div><div class="twinkle" style="left: 71.3355vw; top: 85.2712vh; animation-delay: 2.20029s;"></div><div class="twinkle" style="left: 31.2177vw; top: 89.4745vh; animation-delay: 0.523876s;"></div><div class="twinkle" style="left: 52.9605vw; top: 71.1006vh; animation-delay: 3.55338s;"></div><div class="twinkle" style="left: 31.6261vw; top: 70.8448vh; animation-delay: 3.25156s;"></div><div class="twinkle" style="left: 47.3378vw; top: 84.4466vh; animation-delay: 0.55784s;"></div><div class="twinkle" style="left: 91.6521vw; top: 79.1408vh; animation-delay: 1.45624s;"></div><div class="twinkle" style="left: 62.6556vw; top: 22.7932vh; animation-delay: 4.73868s;"></div><div class="twinkle" style="left: 31.2536vw; top: 62.9926vh; animation-delay: 3.09583s;"></div><div class="twinkle" style="left: 49.1563vw; top: 77.9901vh; animation-delay: 3.42755s;"></div><div class="twinkle" style="left: 15.0305vw; top: 64.0117vh; animation-delay: 2.43467s;"></div><div class="twinkle" style="left: 35.2385vw; top: 86.2706vh; animation-delay: 3.2606s;"></div><div class="twinkle" style="left: 99.733vw; top: 89.1226vh; animation-delay: 4.89494s;"></div><div class="twinkle" style="left: 37.3073vw; top: 6.61759vh; animation-delay: 4.81711s;"></div><div class="twinkle" style="left: 20.7105vw; top: 93.3622vh; animation-delay: 2.0646s;"></div><div class="twinkle" style="left: 91.8388vw; top: 14.6005vh; animation-delay: 3.82962s;"></div><div class="twinkle" style="left: 15.7901vw; top: 27.8647vh; animation-delay: 0.15381s;"></div><div class="twinkle" style="left: 10.8104vw; top: 15.4976vh; animation-delay: 0.244626s;"></div><div class="twinkle" style="left: 73.0855vw; top: 37.1224vh; animation-delay: 0.00716071s;"></div><div class="twinkle" style="left: 92.3457vw; top: 52.4065vh; animation-delay: 4.34638s;"></div><div class="twinkle" style="left: 61.7777vw; top: 78.4356vh; animation-delay: 1.51595s;"></div><div class="twinkle" style="left: 61.634vw; top: 13.5703vh; animation-delay: 1.5868s;"></div><div class="twinkle" style="left: 50.9753vw; top: 24.5317vh; animation-delay: 1.74689s;"></div><div class="twinkle" style="left: 54.3251vw; top: 58.7221vh; animation-delay: 4.12108s;"></div><div class="twinkle" style="left: 40.5906vw; top: 23.8139vh; animation-delay: 3.51103s;"></div><div class="twinkle" style="left: 11.2182vw; top: 13.112vh; animation-delay: 2.02334s;"></div><div class="twinkle" style="left: 77.0394vw; top: 88.0362vh; animation-delay: 4.9987s;"></div><div class="twinkle" style="left: 98.2645vw; top: 94.7922vh; animation-delay: 3.636s;"></div><div class="twinkle" style="left: 30.8986vw; top: 58.0115vh; animation-delay: 0.31704s;"></div><div class="twinkle" style="left: 19.7034vw; top: 52.7589vh; animation-delay: 3.13245s;"></div><div class="twinkle" style="left: 35.3236vw; top: 69.3886vh; animation-delay: 2.29806s;"></div><div class="twinkle" style="left: 42.2639vw; top: 90.5439vh; animation-delay: 1.4005s;"></div><div class="twinkle" style="left: 1.55071vw; top: 98.2831vh; animation-delay: 4.48488s;"></div><div class="twinkle" style="left: 26.1987vw; top: 2.24537vh; animation-delay: 1.09577s;"></div><div class="twinkle" style="left: 54.9688vw; top: 87.2825vh; animation-delay: 3.68382s;"></div><div class="twinkle" style="left: 58.4597vw; top: 88.954vh; animation-delay: 2.74076s;"></div><div class="twinkle" style="left: 53.1142vw; top: 22.5425vh; animation-delay: 1.90927s;"></div><div class="twinkle" style="left: 14.6208vw; top: 53.3197vh; animation-delay: 1.07915s;"></div><div class="twinkle" style="left: 45.4473vw; top: 62.4723vh; animation-delay: 4.88257s;"></div><div class="twinkle" style="left: 83.118vw; top: 79.9999vh; animation-delay: 1.9639s;"></div><div class="twinkle" style="left: 42.5705vw; top: 63.1197vh; animation-delay: 1.47383s;"></div><div class="twinkle" style="left: 78.3295vw; top: 8.31725vh; animation-delay: 4.20691s;"></div><div class="twinkle" style="left: 14.9603vw; top: 46.4217vh; animation-delay: 2.31331s;"></div><div class="twinkle" style="left: 51.7807vw; top: 19.1841vh; animation-delay: 3.08291s;"></div><div class="twinkle" style="left: 9.36649vw; top: 76.485vh; animation-delay: 4.64521s;"></div><div class="twinkle" style="left: 44.0439vw; top: 17.8885vh; animation-delay: 3.76726s;"></div><div class="twinkle" style="left: 20.2684vw; top: 92.3996vh; animation-delay: 1.67083s;"></div><div class="twinkle" style="left: 55.4449vw; top: 67.5068vh; animation-delay: 4.50628s;"></div><div class="twinkle" style="left: 67.6705vw; top: 20.9922vh; animation-delay: 1.31306s;"></div><div class="twinkle" style="left: 24.4135vw; top: 67.7504vh; animation-delay: 2.93047s;"></div><div class="twinkle" style="left: 6.98164vw; top: 42.3573vh; animation-delay: 1.66352s;"></div><div class="twinkle" style="left: 37.4896vw; top: 92.3675vh; animation-delay: 0.561405s;"></div><div class="twinkle" style="left: 52.1887vw; top: 3.60697vh; animation-delay: 4.49771s;"></div><div class="twinkle" style="left: 33.3371vw; top: 79.0852vh; animation-delay: 0.00388902s;"></div><div class="twinkle" style="left: 57.328vw; top: 73.7711vh; animation-delay: 4.21999s;"></div><div class="twinkle" style="left: 61.8851vw; top: 59.5365vh; animation-delay: 4.90308s;"></div><div class="twinkle" style="left: 53.4564vw; top: 95.9496vh; animation-delay: 0.878943s;"></div><div class="twinkle" style="left: 72.8847vw; top: 70.6042vh; animation-delay: 4.90138s;"></div><div class="twinkle" style="left: 68.0692vw; top: 39.5464vh; animation-delay: 4.41869s;"></div><div class="twinkle" style="left: 50.9428vw; top: 8.16269vh; animation-delay: 0.675442s;"></div><div class="twinkle" style="left: 16.444vw; top: 47.6151vh; animation-delay: 4.36213s;"></div><div class="twinkle" style="left: 19.7799vw; top: 80.8895vh; animation-delay: 0.976367s;"></div><div class="twinkle" style="left: 38.92vw; top: 75.7197vh; animation-delay: 0.562s;"></div><div class="twinkle" style="left: 98.5227vw; top: 14.744vh; animation-delay: 2.87337s;"></div><div class="twinkle" style="left: 56.9809vw; top: 12.0811vh; animation-delay: 1.27743s;"></div><div class="twinkle" style="left: 87.5125vw; top: 32.6052vh; animation-delay: 2.81373s;"></div><div class="twinkle" style="left: 21.1803vw; top: 49.0789vh; animation-delay: 0.37582s;"></div><div class="twinkle" style="left: 14.7207vw; top: 97.0371vh; animation-delay: 2.705s;"></div><div class="twinkle" style="left: 57.3721vw; top: 25.614vh; animation-delay: 1.66881s;"></div><div class="twinkle" style="left: 68.8208vw; top: 37.0544vh; animation-delay: 0.447656s;"></div><div class="twinkle" style="left: 77.6661vw; top: 38.9764vh; animation-delay: 0.708731s;"></div><div class="twinkle" style="left: 28.9391vw; top: 8.99765vh; animation-delay: 4.36569s;"></div><div class="twinkle" style="left: 74.2523vw; top: 71.9603vh; animation-delay: 2.9469s;"></div><div class="twinkle" style="left: 58.5098vw; top: 79.6658vh; animation-delay: 0.166111s;"></div><div class="twinkle" style="left: 25.4454vw; top: 97.8861vh; animation-delay: 3.00373s;"></div><div class="twinkle" style="left: 23.2892vw; top: 17.955vh; animation-delay: 0.70878s;"></div><div class="twinkle" style="left: 3.35971vw; top: 61.9385vh; animation-delay: 1.97099s;"></div><div class="twinkle" style="left: 86.0774vw; top: 23.2816vh; animation-delay: 3.56625s;"></div><div class="twinkle" style="left: 58.6487vw; top: 5.37579vh; animation-delay: 4.92201s;"></div><div class="twinkle" style="left: 47.7324vw; top: 6.68965vh; animation-delay: 4.19391s;"></div><div class="twinkle" style="left: 83.1153vw; top: 90.7251vh; animation-delay: 3.17211s;"></div><div class="twinkle" style="left: 32.294vw; top: 77.3291vh; animation-delay: 3.3687s;"></div><div class="twinkle" style="left: 25.0027vw; top: 54.6387vh; animation-delay: 1.4786s;"></div><div class="twinkle" style="left: 24.2462vw; top: 21.8419vh; animation-delay: 2.18957s;"></div></div>
+
+<div id="photo-modal" onclick="this.style.display='none'">
+    <img id="modal-img" src="" onclick="event.stopPropagation()">
+</div>
+
+<div id="entry-page">
+    <div id="entry-stars" class="stars"><div class="twinkle" style="left: 92.6708vw; top: 24.8139vh; animation-delay: 0.157974s;"></div><div class="twinkle" style="left: 53.2993vw; top: 0.454252vh; animation-delay: 2.69849s;"></div><div class="twinkle" style="left: 16.9481vw; top: 29.4992vh; animation-delay: 1.75226s;"></div><div class="twinkle" style="left: 32.7099vw; top: 56.7236vh; animation-delay: 3.32851s;"></div><div class="twinkle" style="left: 31.9976vw; top: 45.3686vh; animation-delay: 4.30471s;"></div><div class="twinkle" style="left: 90.2496vw; top: 41.5987vh; animation-delay: 3.45063s;"></div><div class="twinkle" style="left: 48.7425vw; top: 5.82122vh; animation-delay: 3.05098s;"></div><div class="twinkle" style="left: 68.5695vw; top: 39.7108vh; animation-delay: 2.63004s;"></div><div class="twinkle" style="left: 65.8204vw; top: 33.7222vh; animation-delay: 1.55627s;"></div><div class="twinkle" style="left: 14.6901vw; top: 33.7706vh; animation-delay: 4.10946s;"></div><div class="twinkle" style="left: 16.0697vw; top: 45.1276vh; animation-delay: 4.52798s;"></div><div class="twinkle" style="left: 25.8103vw; top: 6.74103vh; animation-delay: 0.507378s;"></div><div class="twinkle" style="left: 85.3352vw; top: 0.871763vh; animation-delay: 4.12766s;"></div><div class="twinkle" style="left: 90.2569vw; top: 60.3487vh; animation-delay: 1.12162s;"></div><div class="twinkle" style="left: 16.7076vw; top: 43.4841vh; animation-delay: 4.76963s;"></div><div class="twinkle" style="left: 96.6502vw; top: 21.16vh; animation-delay: 4.53374s;"></div><div class="twinkle" style="left: 94.5551vw; top: 89.9518vh; animation-delay: 0.637758s;"></div><div class="twinkle" style="left: 31.8172vw; top: 10.5517vh; animation-delay: 1.50843s;"></div><div class="twinkle" style="left: 81.0645vw; top: 79.4412vh; animation-delay: 0.8303s;"></div><div class="twinkle" style="left: 48.7755vw; top: 72.6535vh; animation-delay: 2.66067s;"></div><div class="twinkle" style="left: 64.2299vw; top: 65.6688vh; animation-delay: 0.427991s;"></div><div class="twinkle" style="left: 49.0189vw; top: 69.2351vh; animation-delay: 2.0834s;"></div><div class="twinkle" style="left: 96.9117vw; top: 64.184vh; animation-delay: 0.831786s;"></div><div class="twinkle" style="left: 60.3871vw; top: 48.9529vh; animation-delay: 3.99967s;"></div><div class="twinkle" style="left: 41.0481vw; top: 82.7659vh; animation-delay: 3.78416s;"></div><div class="twinkle" style="left: 10.4724vw; top: 4.92791vh; animation-delay: 2.34765s;"></div><div class="twinkle" style="left: 72.4422vw; top: 75.4283vh; animation-delay: 3.27984s;"></div><div class="twinkle" style="left: 15.6035vw; top: 31.6111vh; animation-delay: 0.792096s;"></div><div class="twinkle" style="left: 53.7044vw; top: 28.4493vh; animation-delay: 3.17343s;"></div><div class="twinkle" style="left: 52.5521vw; top: 61.1823vh; animation-delay: 3.04129s;"></div><div class="twinkle" style="left: 52.0594vw; top: 85.2927vh; animation-delay: 1.60468s;"></div><div class="twinkle" style="left: 67.4769vw; top: 18.4604vh; animation-delay: 1.44496s;"></div><div class="twinkle" style="left: 99.2885vw; top: 24.144vh; animation-delay: 4.1937s;"></div><div class="twinkle" style="left: 61.6906vw; top: 63.2097vh; animation-delay: 2.09261s;"></div><div class="twinkle" style="left: 48.7055vw; top: 84.3019vh; animation-delay: 1.74851s;"></div><div class="twinkle" style="left: 3.9581vw; top: 48.5559vh; animation-delay: 4.00204s;"></div><div class="twinkle" style="left: 62.7839vw; top: 72.4023vh; animation-delay: 3.37501s;"></div><div class="twinkle" style="left: 70.8657vw; top: 75.5035vh; animation-delay: 2.25926s;"></div><div class="twinkle" style="left: 1.29855vw; top: 41.5633vh; animation-delay: 4.92061s;"></div><div class="twinkle" style="left: 36.9553vw; top: 84.8691vh; animation-delay: 2.78366s;"></div><div class="twinkle" style="left: 18.1342vw; top: 30.4419vh; animation-delay: 4.24498s;"></div><div class="twinkle" style="left: 83.6402vw; top: 20.7816vh; animation-delay: 4.72472s;"></div><div class="twinkle" style="left: 46.5218vw; top: 82.5937vh; animation-delay: 4.50486s;"></div><div class="twinkle" style="left: 41.9842vw; top: 54.1112vh; animation-delay: 3.15632s;"></div><div class="twinkle" style="left: 85.3535vw; top: 35.7046vh; animation-delay: 1.67124s;"></div><div class="twinkle" style="left: 45.7708vw; top: 26.5825vh; animation-delay: 3.29655s;"></div><div class="twinkle" style="left: 30.2732vw; top: 82.3035vh; animation-delay: 2.94356s;"></div><div class="twinkle" style="left: 30.7261vw; top: 62.6562vh; animation-delay: 2.91284s;"></div><div class="twinkle" style="left: 72.5984vw; top: 77.6752vh; animation-delay: 4.09174s;"></div><div class="twinkle" style="left: 83.0832vw; top: 42.5492vh; animation-delay: 2.80836s;"></div><div class="twinkle" style="left: 89.1276vw; top: 54.4516vh; animation-delay: 1.93345s;"></div><div class="twinkle" style="left: 20.4611vw; top: 41.5015vh; animation-delay: 4.93395s;"></div><div class="twinkle" style="left: 84.3506vw; top: 59.7667vh; animation-delay: 4.42056s;"></div><div class="twinkle" style="left: 15.4445vw; top: 1.34339vh; animation-delay: 4.05208s;"></div><div class="twinkle" style="left: 6.976vw; top: 25.0548vh; animation-delay: 2.31231s;"></div><div class="twinkle" style="left: 31.9836vw; top: 83.8144vh; animation-delay: 4.159s;"></div><div class="twinkle" style="left: 41.4053vw; top: 13.9573vh; animation-delay: 4.6252s;"></div><div class="twinkle" style="left: 7.17435vw; top: 99.8501vh; animation-delay: 2.56372s;"></div><div class="twinkle" style="left: 74.114vw; top: 72.0734vh; animation-delay: 3.44897s;"></div><div class="twinkle" style="left: 85.7542vw; top: 96.7408vh; animation-delay: 2.44878s;"></div><div class="twinkle" style="left: 46.0216vw; top: 68.1649vh; animation-delay: 1.17999s;"></div><div class="twinkle" style="left: 99.4737vw; top: 55.9983vh; animation-delay: 3.83053s;"></div><div class="twinkle" style="left: 95.5965vw; top: 3.02992vh; animation-delay: 0.47685s;"></div><div class="twinkle" style="left: 48.1614vw; top: 42.6029vh; animation-delay: 3.44037s;"></div><div class="twinkle" style="left: 80.555vw; top: 56.5313vh; animation-delay: 2.78532s;"></div><div class="twinkle" style="left: 74.1835vw; top: 58.2744vh; animation-delay: 1.70848s;"></div><div class="twinkle" style="left: 9.2239vw; top: 37.5284vh; animation-delay: 0.768665s;"></div><div class="twinkle" style="left: 2.58825vw; top: 95.3471vh; animation-delay: 0.691364s;"></div><div class="twinkle" style="left: 23.6233vw; top: 33.3612vh; animation-delay: 2.96299s;"></div><div class="twinkle" style="left: 53.4116vw; top: 44.0678vh; animation-delay: 4.86296s;"></div><div class="twinkle" style="left: 5.02556vw; top: 82.5521vh; animation-delay: 1.79583s;"></div><div class="twinkle" style="left: 85.3815vw; top: 34.5429vh; animation-delay: 2.35845s;"></div><div class="twinkle" style="left: 50.1081vw; top: 48.9316vh; animation-delay: 1.73178s;"></div><div class="twinkle" style="left: 32.5158vw; top: 58.7228vh; animation-delay: 0.127176s;"></div><div class="twinkle" style="left: 19.8782vw; top: 65.4903vh; animation-delay: 4.96826s;"></div><div class="twinkle" style="left: 66.0169vw; top: 68.6877vh; animation-delay: 2.37371s;"></div><div class="twinkle" style="left: 46.1127vw; top: 47.3725vh; animation-delay: 4.33346s;"></div><div class="twinkle" style="left: 7.4132vw; top: 79.6477vh; animation-delay: 2.97047s;"></div><div class="twinkle" style="left: 12.4594vw; top: 81.1181vh; animation-delay: 1.91499s;"></div><div class="twinkle" style="left: 15.5169vw; top: 47.3238vh; animation-delay: 1.29809s;"></div><div class="twinkle" style="left: 26.9925vw; top: 39.9805vh; animation-delay: 4.25535s;"></div><div class="twinkle" style="left: 85.0959vw; top: 27.7362vh; animation-delay: 4.18357s;"></div><div class="twinkle" style="left: 47.4236vw; top: 42.639vh; animation-delay: 4.71428s;"></div><div class="twinkle" style="left: 1.40594vw; top: 87.6609vh; animation-delay: 3.6655s;"></div><div class="twinkle" style="left: 91.6191vw; top: 45.6984vh; animation-delay: 3.89834s;"></div><div class="twinkle" style="left: 23.3557vw; top: 57.2167vh; animation-delay: 4.38387s;"></div><div class="twinkle" style="left: 28.0851vw; top: 82.1421vh; animation-delay: 4.88204s;"></div><div class="twinkle" style="left: 61.9859vw; top: 35.2887vh; animation-delay: 4.30127s;"></div><div class="twinkle" style="left: 78.806vw; top: 68.5755vh; animation-delay: 2.76834s;"></div><div class="twinkle" style="left: 60.1544vw; top: 10.7399vh; animation-delay: 0.181396s;"></div><div class="twinkle" style="left: 89.3316vw; top: 2.48113vh; animation-delay: 2.11197s;"></div><div class="twinkle" style="left: 4.63828vw; top: 42.1165vh; animation-delay: 0.297374s;"></div><div class="twinkle" style="left: 21.2401vw; top: 15.6069vh; animation-delay: 0.930565s;"></div><div class="twinkle" style="left: 42.2993vw; top: 76.6718vh; animation-delay: 4.9066s;"></div><div class="twinkle" style="left: 69.4665vw; top: 40.8114vh; animation-delay: 2.11247s;"></div><div class="twinkle" style="left: 36.1957vw; top: 15.3971vh; animation-delay: 0.858097s;"></div><div class="twinkle" style="left: 53.7008vw; top: 89.2891vh; animation-delay: 1.55454s;"></div><div class="twinkle" style="left: 53.9713vw; top: 31.9301vh; animation-delay: 0.903239s;"></div><div class="twinkle" style="left: 89.8577vw; top: 38.0716vh; animation-delay: 3.05736s;"></div><div class="twinkle" style="left: 31.039vw; top: 64.2434vh; animation-delay: 4.81249s;"></div><div class="twinkle" style="left: 49.6492vw; top: 6.77997vh; animation-delay: 1.95337s;"></div><div class="twinkle" style="left: 84.8265vw; top: 99.0812vh; animation-delay: 0.0699363s;"></div><div class="twinkle" style="left: 62.9598vw; top: 28.4197vh; animation-delay: 0.934749s;"></div><div class="twinkle" style="left: 80.194vw; top: 91.7411vh; animation-delay: 4.11798s;"></div><div class="twinkle" style="left: 82.2961vw; top: 46.6362vh; animation-delay: 1.97732s;"></div><div class="twinkle" style="left: 54.2863vw; top: 15.3849vh; animation-delay: 0.536212s;"></div><div class="twinkle" style="left: 42.4849vw; top: 12.8722vh; animation-delay: 1.83217s;"></div><div class="twinkle" style="left: 48.2935vw; top: 51.7975vh; animation-delay: 2.57247s;"></div><div class="twinkle" style="left: 8.2943vw; top: 68.5643vh; animation-delay: 2.90969s;"></div><div class="twinkle" style="left: 27.7368vw; top: 86.3417vh; animation-delay: 1.78401s;"></div><div class="twinkle" style="left: 81.8377vw; top: 88.6665vh; animation-delay: 4.7017s;"></div><div class="twinkle" style="left: 79.9179vw; top: 57.8552vh; animation-delay: 4.36195s;"></div><div class="twinkle" style="left: 37.6495vw; top: 98.1032vh; animation-delay: 2.96259s;"></div><div class="twinkle" style="left: 98.9849vw; top: 26.9579vh; animation-delay: 1.64908s;"></div><div class="twinkle" style="left: 93.7078vw; top: 42.9335vh; animation-delay: 4.06953s;"></div><div class="twinkle" style="left: 23.4013vw; top: 63.3359vh; animation-delay: 3.63245s;"></div><div class="twinkle" style="left: 54.7985vw; top: 67.8044vh; animation-delay: 2.24596s;"></div><div class="twinkle" style="left: 43.2199vw; top: 84.4889vh; animation-delay: 2.56666s;"></div><div class="twinkle" style="left: 84.5097vw; top: 39.3926vh; animation-delay: 1.50928s;"></div><div class="twinkle" style="left: 10.8504vw; top: 41.5002vh; animation-delay: 3.78696s;"></div></div> <div class="welcome-title animated-gradient"></div>
+    <button class="btn-enter" onclick="start()">Entrar</button>
+</div>
+
+<div id="main-interface">
+    <div id="profile-card">
+       <h1 class="animation-delay" style="margin: 0 0 10px 0; font-size: 2.5rem; text-transform: uppercase;">ELY</h1>
+       <h2 class="animation-delay" style="margin: 0 0 10px 0; font-size: 0.75rem; text-transform: uppercase;">neLiaguadaLupe (382017253)</h2>
+        <img src="https://xatimg.com/image/0D3dUCdvYzuW.png" class="profile-img">
+        
+        <button class="menu-btn" onclick="resetInterface()">Home</button>
+        <button class="menu-btn" id="btn-sobre" onclick="openPanel('sobre-content')">Sobre Mi</button>
+        <button class="menu-btn" id="btn-fotos" onclick="openPanel('fotos-content')">Fotos</button>
+        <button class="menu-btn" id="btn-xat" onclick="openPanel('xat-content')">Amigos</button>
+               <div class="player-container">
+            <div id="track-name" style="font-size: 0.75rem; margin-bottom: 8px; color: var(--soft-pink);">Música: Name Player</div>
+            <audio id="audio-player"></audio>
+            <div class="player-controls">
+                <button class="player-btn" onclick="prevTrack()">⏮</button>
+                <button class="player-btn" style="width: 45px; height: 45px;" onclick="togglePlay()" id="play-btn">▶</button>
+                <button class="player-btn" onclick="nextTrack()">⏭</button>
+            </div>
+            <input type="range" style="width: 80%; accent-color: var(--neon-pink);" min="0" max="1" step="0.1" value="0.5" onchange="updateVolume(this.value)">
+        </div>
+
+        <div style="margin-top: 15px; font-family: monospace; color: var(--neon-pink); font-size: 0.8rem;">
+            ELY™ <span id="v-count">2026</span>
+        </div>
+    </div>
+
+    <div id="side-panel">
+        <div id="sobre-content" class="panel-content">
+            <h2 class="animated-gradient" style="text-align:center;">Sobre Mi</h2>
+            <p style="font-size: 1rem; font-style: italic; line-height: 1.8; text-align: justify; padding: 10px;">
+                "Soy una chica sencilla, que le gusta escuchar música, la tranquilidad y la paz. Soy alegre, y muy amiga de mis amigos."
+            </p>
+        </div>
+
+        <div id="fotos-content" class="panel-content">
+            <h2 class="animated-gradient" style="text-align:center;">Galeria</h2>
+            <div class="photo-grid">
+                <img src="https://i.imgur.com/IHCJqkN.png" onclick="openPhoto(this.src)">
+                <img src="https://i.imgur.com/tq7AiM2.jpeg" onclick="openPhoto(this.src)">
+                <img src="https://i.imgur.com/0EO8IAv.jpeg" onclick="openPhoto(this.src)">
+                <img src="https://i.imgur.com/AVEix4s.jpeg" onclick="openPhoto(this.src)">
+                <img src="https://i.imgur.com/tLxL2Nl.jpeg" onclick="openPhoto(this.src)">
+                <img src="https://i.imgur.com/hJtvWYr.jpeg" onclick="openPhoto(this.src)">
+            </div>
+        </div>
+
+        <div id="xat-content" class="panel-content">
+            <h2 class="animated-gradient" style="text-align:center;">Amigos</h2>
+            <a href="https://xat.me/pitufo" target="_blank" class="menu-btn" style="text-decoration:none; display: block; text-align: center;">PITUFO</a>
+            <a href="https://xat.me/enchinadaokey" target="_blank" class="menu-btn" style="text-decoration:none; display: block; text-align: center;">CAZZÚ</a>
+            <a href="https://xat.me/TU4MANT3Eterno" target="_blank" class="menu-btn" style="text-decoration:none; display: block; text-align: center;">AMANTE</a>
+        </div>
+
+        <div <="" div="">
+
+        <button class="menu-btn" style="margin-top: 30px;" onclick="resetInterface()">volver</button>
+    </div>
+</div>
+
+<script>
+      const playlist = [
+            { name: "Ana Gabriel - Simplemente Amigos", url: "https://mp3tourl.com/audio/1788479394621-19b68cff-4c09-4df0-a137-6379dde5fcef.mp3" },
+            { name: "Vicente Fernández with Alejandro Fernández - Amor de los Dos", url: "https://mp3tourl.com/audio/1788479464745-f20c1781-669b-4b0b-a331-43e4b9f883fd.mp3" },
+            { name: "Luis Miguel - Serenata huasteca", url: "https://mp3tourl.com/audio/1788479517901-b431b10c-0740-4be2-b6a1-a00bea24be26.mp3" }
+        ];
+
+    let currentTrack = 0;
+    const player = document.getElementById('audio-player');
+
+    createTwinklingStars('stars-bg');
+    createTwinklingStars('entry-stars');
+
+    /* --- LÓGICA DO RASTRO DE CAUDA (COMET TRAIL) --- */
+    const trailSegments = [];
+    const maxSegments = 20;
+
+    document.addEventListener('mousemove', (e) => {
+        const segment = document.createElement('div');
+        segment.className = 'cursor-trail';
+        segment.style.left = e.clientX + 'px';
+        segment.style.top = e.clientY + 'px';
+        document.body.appendChild(segment);
+        trailSegments.push(segment);
+
+        while (trailSegments.length > maxSegments) {
+            trailSegments.shift().remove();
+        }
+
+        for (let i = 0; i < trailSegments.length; i++) {
+            const seg = trailSegments[i];
+            const ratio = i / trailSegments.length; 
+            const size = 12 * ratio; 
+            seg.style.width = size + 'px';
+            seg.style.height = size + 'px';
+            seg.style.opacity = ratio;
+
+            if (ratio < 0.3) {
+                seg.style.background = 'white';
+            } else if (ratio < 0.6) {
+                seg.style.background = 'var(--white-pink)';
+            } else {
+                seg.style.background = 'var(--neon-pink)';
+            }
+        }
+    });
+
+    document.addEventListener('mouseout', () => {
+        while (trailSegments.length > 0) {
+            trailSegments.shift().remove();
+        }
+    });
+
+    // --- NOVA LÓGICA DE CONTADOR API ---
+    async function updateCounter() {
+        const ID_KEY = "xatspace_name_counter_2026"; // ID único para seu contador
+        try {
+            const res = await fetch(`https://api.counterapi.dev/v1/wrs-galeria/${ID_KEY}/up`);
+            const data = await res.json();
+            const count = (data.count || data.value).toString().padStart(5, '0');
+            document.getElementById('v-count').innerText = count;
+        } catch(e) {
+            // Caso a API falhe, mostra 00001
+            document.getElementById('v-count').innerText = "2026";
+        }
+    }
+
+    function start() {
+        document.getElementById('entry-page').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('entry-page').style.visibility = 'hidden';
+            document.getElementById('main-interface').style.visibility = 'visible';
+            document.getElementById('main-interface').style.opacity = '1';
+        }, 800);
+        loadTrack(0);
+        player.play();
+        updateCounter(); // Chama a nova função
+        generateMasterTable();
+    }
+
+    function loadTrack(i) {
+        player.src = playlist[i].url;
+        document.getElementById('track-name').innerText = "Música: " + playlist[i].name;
+    }
+
+    function togglePlay() {
+        if (player.paused) { player.play(); document.getElementById('play-btn').innerText = "⏸"; }
+        else { player.pause(); document.getElementById('play-btn').innerText = "▶"; }
+    }
+
+    function nextTrack() { currentTrack = (currentTrack + 1) % playlist.length; loadTrack(currentTrack); player.play(); }
+    function prevTrack() { currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; loadTrack(currentTrack); player.play(); }
+    function updateVolume(val) { player.volume = val; }
+
+    function handleRightClick(e) {
+        e.preventDefault();
+        const alertBox = document.getElementById('alert-box');
+        alertBox.style.display = 'block';
+        setTimeout(() => { alertBox.style.display = 'none'; }, 2000);
+    }
+
+    function generateMasterTable() {
+        const grid = document.getElementById('color-list');
+        grid.innerHTML = '';
+        for (let l = 100; l >= 0; l -= 10) addColorBox(0, 0, l, grid);
+        for (let h = 0; h <= 360; h += 12) {
+            for (let l = 30; l <= 70; l += 20) addColorBox(h, 90, l, grid);
+        }
+    }
+
+    function addColorBox(h, s, l, container) {
+        const hex = hslToHex(h, s, l);
+        let d = document.createElement('div');
+        d.className = 'c-box';
+        d.style.background = hex;
+        d.onclick = () => { 
+            navigator.clipboard.writeText(hex);
+            const toast = document.getElementById('copy-toast');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 1200);
+        };
+        container.appendChild(d);
+    }
+
+    function resetInterface() {
+        document.getElementById('side-panel').classList.remove('open');
+        document.querySelectorAll('.panel-content').forEach(pc => pc.style.display = 'none');
+        document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+    }
+
+    function openPanel(id) {
+        const panel = document.getElementById('side-panel');
+        if (panel.classList.contains('open') && document.getElementById(id).style.display === 'block') {
+            resetInterface(); return;
+        }
+        resetInterface();
+        panel.classList.add('open');
+        document.getElementById(id).style.display = 'block';
+        const btnId = 'btn-' + id.replace('-content', '');
+        if(document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
+    }
+
+    function openPhoto(src) {
+        const modal = document.getElementById('photo-modal');
+        const img = document.getElementById('modal-img');
+        img.src = src;
+        modal.style.display = 'flex';
+    }
+
+    function createTwinklingStars(containerId) {
+        const bg = document.getElementById(containerId);
+        if (!bg) return;
+        for (let i = 0; i < 60; i++) {
+            let star = document.createElement('div');
+            star.className = 'twinkle';
+            star.style.left = Math.random() * 100 + 'vw';
+            star.style.top = Math.random() * 100 + 'vh';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            bg.appendChild(star);
+        }
+    }
+
+    function hslToHex(h, s, l) {
+        l /= 100; const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+            const k = (n + h / 30) % 12;
+            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            return Math.round(255 * color).toString(16).padStart(2, '0');
+        };
+        return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+    }
+</script>
+
+
+</div></body></html>
